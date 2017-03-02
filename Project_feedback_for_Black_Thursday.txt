@@ -1,0 +1,19 @@
+Dear Sam,
+
+I loved working with you on this project. I appreciate your commitment to me as your partner and to this project, and I also appreciate you letting me drive so much so that I could gain the significant experience I took away from this project. It’s clear to me that you are very invested in overall team success and project experience.
+	
+Your strengths include:
+- Super positive
+- Flexible attitude
+- Easy going
+- Knowledgeable about various Ruby methods
+- Creative in writing code
+- Patient
+- Communicative and open
+
+Things you need to work on:
+- Not a thing! I would have put TDD if we were at the beginning of the project, but you’re an old pro at it now.
+
+Thanks for an excellent project/partner experience. I really hope we get to work together again!
+
+Erin
