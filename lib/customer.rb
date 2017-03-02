@@ -3,11 +3,11 @@ class Customer
   extend ClassMethods
 
   attr_reader :id,
-              :first_name,
-              :last_name,
-              :created_at,
-              :updated_at,
-              :se
+    :first_name,
+    :last_name,
+    :created_at,
+    :updated_at,
+    :se
 
   def initialize(params, sales_engine)
     params = Customer.read_csv(params).first if params.instance_of?(String)
@@ -29,6 +29,10 @@ class Customer
     merchant_ids.map do |merchant_id|
       se.merchants.find_by_id(merchant_id)
     end
+  end
+
+  def invoices
+    se.invoices.find_all_by_customer_id(id)
   end
 
   def fully_paid_invoices

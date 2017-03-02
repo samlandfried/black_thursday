@@ -1,7 +1,7 @@
 class SalesAnalyst
   attr_reader :se,
-              :avg_items_per_merchant,
-              :avg_items_per_merchant_std_dev
+    :avg_items_per_merchant,
+    :avg_items_per_merchant_std_dev
 
   def initialize(sales_engine)
     @se = sales_engine
@@ -153,7 +153,7 @@ class SalesAnalyst
       se.invoices.find_by_id(ii.invoice_id).merchant_id
     end
     purchases_count =
-      grouped.reduce(Hash.new(0)) do |hash, (merchant_id, invoice_items)|
+    grouped.reduce(Hash.new(0)) do |hash, (merchant_id, invoice_items)|
       hash[merchant_id] = invoice_items.reduce(0) do |total, invoice_item|
         total += invoice_item.quantity
       end
@@ -171,48 +171,38 @@ class SalesAnalyst
     end
   end
 
+  def one_time_buyers_invoices
+    one_time_buyers.map(&:invoices).flatten
+  end
+
+  def get_invoice_items_from(invoices)
+    invoices.map(&:invoice_items).flatten
+  end
+
   def one_time_buyers_items
-    items_purchased = one_time_buyers.map do |customer|
-      customer.fully_paid_invoices.collect do |invoice|
-        invoice.items
-      end << customer.id
-    end
+    paid_invoices = one_time_buyers_invoices.select(&:is_paid_in_full?)
+    invoice_items = get_invoice_items_from(paid_invoices)
+    retrieve_top_selling_items(invoice_items)
+  end
 
-    items = items_purchased.reduce([]) do |ary, items_and_cust_id|
-      items_and_cust_id.first.each do |item|
-        ary << [item, items_and_cust_id.last]
-      end
-      ary
-    end
-
-    items_purchase_frequency = items.reduce(Hash.new(0)) do |hash, item|
-      customer_id = item.last
-      item = item.first
-      if item
-        invoice_items = se.invoice_items.find_all_by_item_id(item.id)
-        matching_invoice_item = invoice_items.select do |invoice_item|
-          invoice = se.invoices.find_by_id(invoice_item.invoice_id)
-          invoice.customer_id == customer_id
-        end.first
-        quantity = matching_invoice_item.quantity
-
-        hash[item.id] += quantity if item
-      end
+  def purchases_count(invoice_items)
+    invoice_items.reduce(Hash.new(0)) do |hash, invoice_item|
+      hash[invoice_item.item_id] += invoice_item.quantity
       hash
     end
+  end
 
-    items_purchase_frequency = items_purchase_frequency.sort_by do |key, val|
-      -val
-    end
+  def retrieve_top_selling_items(item_id_and_count)
+    items_purchase_frequency = purchases_count(item_id_and_count)
+    max_sales = items_purchase_frequency.max_by { |x| x.last }.last
+    get_items_sold_x_times(items_purchase_frequency, max_sales)
+  end
 
-    most_purchases = items_purchase_frequency.first.last
-
-    top_items = items_purchase_frequency.select do |item_id|
-      item_id.last == most_purchases
-    end
-
-    top_items.map do |item_id|
-      se.items.find_by_id(item_id.first)
+  def get_items_sold_x_times(item_ids, x)
+    item_ids.reduce([]) do |items, item_id_and_count|
+      item = se.items.find_by_id(item_id_and_count.first)
+      items << item if item_id_and_count.last == x
+      items
     end
   end
 
